@@ -3,7 +3,7 @@
         "Id": "com.conqrex.octopulse",
         "Name": "OctoPulse",
         "Description": "Follow every GitHub Actions workflow run across all your repositories and organizations from one panel widget: live status, re-run, cancel, and failure notifications.",
-        "Icon": "vcs-normal",
+        "Icon": "com.conqrex.octopulse",
         "Category": "System Information",
         "License": "MIT",
         "Version": "0.1.0",
