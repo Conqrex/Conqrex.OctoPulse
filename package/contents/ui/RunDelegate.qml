@@ -155,16 +155,48 @@ Item {
                     PlasmaComponents.ToolTip { text: i18n("Re-run failed jobs only") }
                 }
                 PlasmaComponents.ToolButton {
+                    id: cancelBtn
+                    property bool armed: false
                     icon.name: "process-stop"
-                    text: i18n("Cancel")
+                    text: armed ? i18n("Sure?") : i18n("Cancel")
                     display: PlasmaComponents.ToolButton.TextBesideIcon
                     visible: row.model.bucket === "running"
-                    onClicked: row.fullView.poller.cancel(row.model.repo, row.model.runId)
+                    onClicked: {
+                        if (armed) {
+                            armed = false;
+                            row.fullView.poller.cancel(row.model.repo, row.model.runId);
+                        } else {
+                            armed = true;
+                            disarmTimer.restart();
+                        }
+                    }
+                    Timer {
+                        id: disarmTimer
+                        interval: 3000
+                        onTriggered: cancelBtn.armed = false
+                    }
+                }
+                PlasmaComponents.ToolButton {
+                    icon.name: "media-playback-start"
+                    onClicked: row.fullView.openDispatch(row.model)
+                    PlasmaComponents.ToolTip { text: i18n("Run workflow (workflow_dispatch)") }
                 }
                 PlasmaComponents.ToolButton {
                     icon.name: "internet-services"
                     onClicked: Qt.openUrlExternally(row.model.url)
                     PlasmaComponents.ToolTip { text: i18n("Open on GitHub") }
+                }
+            }
+
+            // jobs + steps + inline logs, created only while expanded
+            Loader {
+                Layout.fillWidth: true
+                active: row.expanded
+                visible: row.expanded
+                sourceComponent: JobList {
+                    fullView: row.fullView
+                    repo: row.model.repo
+                    runId: row.model.runId
                 }
             }
         }

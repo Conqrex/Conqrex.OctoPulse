@@ -35,10 +35,34 @@ Item {
         return true;
     }
 
+    DispatchDialog {
+        id: dispatchDialog
+        poller: fv.poller
+        parent: fv
+    }
+    function openDispatch(m) { dispatchDialog.openFor(m); }
+
+    // ticks each second while rate limited so the countdown label updates
+    property int nowSec: Math.floor(Date.now() / 1000)
+    Timer {
+        interval: 1000
+        running: fv.client.limited
+        repeat: true
+        onTriggered: fv.nowSec = Math.floor(Date.now() / 1000)
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: Kirigami.Units.smallSpacing
         spacing: Kirigami.Units.smallSpacing
+
+        Kirigami.InlineMessage {
+            Layout.fillWidth: true
+            type: Kirigami.MessageType.Warning
+            visible: fv.client.limited
+            text: i18n("GitHub API rate limit reached — resuming in %1 s",
+                       Math.max(0, fv.client.rateReset - fv.nowSec))
+        }
 
         // --- header --------------------------------------------------------
         RowLayout {

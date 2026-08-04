@@ -37,6 +37,12 @@ PlasmoidItem {
         engine.run(helper("notify", shq(summary) + " " + shq(body) + " " + shq("vcs-normal")));
     }
 
+    // plain-text job log via the helper (curl handles the storage redirect
+    // there so the token never reaches the blob host); cb(text)
+    function fetchJobLogs(repo, jobId, cb) {
+        engine.run(helper("job-logs", shq(repo) + " " + jobId), function (out) { cb(out); });
+    }
+
     function loadToken() {
         authState = "loading";
         engine.run(helper("secret-get"), function (out) {

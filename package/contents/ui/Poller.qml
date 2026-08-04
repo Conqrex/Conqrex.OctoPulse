@@ -173,6 +173,8 @@ Item {
         return {
             runId: run.id,
             repo: repo,
+            workflowId: run.workflow_id || 0,
+            workflowPath: run.path || "",
             workflow: run.name || (run.workflow_id + ""),
             runNumber: run.run_number || 0,
             event: run.event || "",
@@ -241,6 +243,40 @@ Item {
             null, function (r) {
                 if (r.ok) refreshRuns();
                 if (cb) cb(r.ok);
+            });
+    }
+
+    // jobs + steps for one run; cb(jobsArray|null)
+    function fetchJobs(repo, runId, cb) {
+        client.request("GET",
+            "/repos/" + repo + "/actions/runs/" + runId + "/jobs?per_page=50", null,
+            function (r) {
+                cb(r.ok && r.data && r.data.jobs ? r.data.jobs : null);
+            });
+    }
+
+    // workflow file text (for dispatch input discovery); cb(text|null)
+    function fetchWorkflowFile(repo, path, cb) {
+        if (!path) { cb(null); return; }
+        client.request("GET", "/repos/" + repo + "/contents/" + path, null, function (r) {
+            if (r.ok && r.data && r.data.content) {
+                try { cb(Qt.atob(r.data.content.replace(/\n/g, ""))); return; }
+                catch (e) {}
+            }
+            cb(null);
+        });
+    }
+
+    // cb(ok, message) — 204 on success, 422 when the workflow has no
+    // workflow_dispatch trigger or inputs are invalid.
+    function dispatch(repo, workflowId, ref, inputs, cb) {
+        client.request("POST",
+            "/repos/" + repo + "/actions/workflows/" + workflowId + "/dispatches",
+            { ref: ref, inputs: inputs || {} },
+            function (r) {
+                if (r.ok) refreshRuns();
+                cb(r.ok, r.ok ? "" :
+                   (r.data && r.data.message ? r.data.message : ("HTTP " + r.status)));
             });
     }
 }
