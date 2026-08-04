@@ -154,6 +154,10 @@ Item {
         // Keep each repo contiguous (ListView sections repeat otherwise):
         // order groups by has-running then latest activity, and inside a
         // group put running runs first, newest after.
+        var favs = {};
+        ("" + (Plasmoid.configuration.favoriteRepos || "")).split(",").forEach(function (x) {
+            var t = x.trim(); if (t) favs[t] = 1;
+        });
         var meta = {};
         arr.forEach(function (r) {
             var m = meta[r.repo] || (meta[r.repo] = { running: false, newest: "" });
@@ -162,6 +166,8 @@ Item {
         });
         arr.sort(function (a, b) {
             if (a.repo !== b.repo) {
+                var fa = !!favs[a.repo], fb = !!favs[b.repo];
+                if (fa !== fb) return fa ? -1 : 1;
                 var ma = meta[a.repo], mb = meta[b.repo];
                 if (ma.running !== mb.running) return ma.running ? -1 : 1;
                 if (ma.newest !== mb.newest) return ma.newest < mb.newest ? 1 : -1;

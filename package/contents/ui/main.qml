@@ -7,7 +7,7 @@ import org.kde.plasma.plasma5support as Plasma5Support
 PlasmoidItem {
     id: root
 
-    readonly property url iconSource: Qt.resolvedUrl("../icons/conqrex-octopulse.svg")
+    readonly property url iconSource: Qt.resolvedUrl("../icons/octopulse.png")
     readonly property string scriptPath: Qt.resolvedUrl("../code/octopulse.sh").toString().replace("file://", "")
 
     // "no-token" | "loading" | "ready" | "unauthorized"

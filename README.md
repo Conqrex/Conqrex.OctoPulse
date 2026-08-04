@@ -1,4 +1,8 @@
-# OctoPulse
+<p align="center">
+  <img src="package/contents/icons/octopulse.png" alt="OctoPulse logo" width="180">
+</p>
+
+<h1 align="center">OctoPulse</h1>
 
 OctoPulse is a KDE Plasma 6 widget that follows **all** your GitHub Actions —
 every repository you own, collaborate on, or can see through your

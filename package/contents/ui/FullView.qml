@@ -24,6 +24,23 @@ Item {
         collapsedRepos = m;
     }
 
+    // pinned repos, persisted as CSV in config; pinned groups sort first
+    property var favRepos: parseCsv(Plasmoid.configuration.favoriteRepos)
+    function parseCsv(s) {
+        var m = {};
+        ("" + (s || "")).split(",").forEach(function (x) {
+            var t = x.trim(); if (t) m[t] = 1;
+        });
+        return m;
+    }
+    function toggleFav(r) {
+        var m = Object.assign({}, favRepos);
+        if (m[r]) delete m[r]; else m[r] = 1;
+        favRepos = m;
+        Plasmoid.configuration.favoriteRepos = Object.keys(m).join(",");
+        poller.rebuild();
+    }
+
     implicitWidth: Kirigami.Units.gridUnit * 30
     implicitHeight: Kirigami.Units.gridUnit * 32
     Layout.minimumWidth: Kirigami.Units.gridUnit * 24
@@ -243,6 +260,17 @@ Item {
                             font.bold: true
                             elide: Text.ElideMiddle
                             Layout.fillWidth: true
+                        }
+                        PlasmaComponents.ToolButton {
+                            readonly property bool fav: !!fv.favRepos[section]
+                            icon.name: fav ? "starred-symbolic" : "non-starred-symbolic"
+                            opacity: fav ? 1.0 : 0.45
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                            onClicked: fv.toggleFav(section)
+                            PlasmaComponents.ToolTip {
+                                text: fav ? i18n("Unpin repository") : i18n("Pin repository to top")
+                            }
                         }
                         // running badge
                         RowLayout {
