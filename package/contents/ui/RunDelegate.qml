@@ -23,7 +23,7 @@ Item {
       : Kirigami.Theme.disabledTextColor
 
     visible: shown
-    height: shown ? card.implicitHeight : 0
+    height: shown ? card.implicitHeight + 2 : 0
 
     Behavior on height {
         NumberAnimation { duration: 120; easing.type: Easing.InOutQuad }

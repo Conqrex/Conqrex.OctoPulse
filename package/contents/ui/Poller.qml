@@ -151,7 +151,22 @@ Item {
                 arr.push(rowOf(repo, run));
             });
         }
+        // Keep each repo contiguous (ListView sections repeat otherwise):
+        // order groups by has-running then latest activity, and inside a
+        // group put running runs first, newest after.
+        var meta = {};
+        arr.forEach(function (r) {
+            var m = meta[r.repo] || (meta[r.repo] = { running: false, newest: "" });
+            if (r.bucket === "running") m.running = true;
+            if (r.startedAt > m.newest) m.newest = r.startedAt;
+        });
         arr.sort(function (a, b) {
+            if (a.repo !== b.repo) {
+                var ma = meta[a.repo], mb = meta[b.repo];
+                if (ma.running !== mb.running) return ma.running ? -1 : 1;
+                if (ma.newest !== mb.newest) return ma.newest < mb.newest ? 1 : -1;
+                return a.repo < b.repo ? -1 : 1;
+            }
             var ar = a.bucket === "running" ? 0 : 1;
             var br = b.bucket === "running" ? 0 : 1;
             if (ar !== br) return ar - br;

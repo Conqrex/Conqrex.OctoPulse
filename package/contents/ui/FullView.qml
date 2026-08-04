@@ -195,7 +195,7 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            spacing: 2
+            spacing: 0    // rows pad themselves; spacing would leave gaps for collapsed rows
             model: fv.poller.runsModel
 
             section.property: "repo"
