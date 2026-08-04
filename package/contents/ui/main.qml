@@ -75,6 +75,7 @@ PlasmoidItem {
     Connections {
         target: Plasmoid.configuration
         function onTokenSavedChanged() { root.loadToken() }
+        function onTokenStampChanged() { root.loadToken() }
     }
 
     readonly property var pollerRef: poller

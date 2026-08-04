@@ -11,6 +11,7 @@ Kirigami.FormLayout {
     id: page
 
     property bool cfg_tokenSaved: false
+    property string cfg_tokenStamp: ""
     // unused config keys must still exist as properties for the dialog
     property int cfg_pollInterval
     property int cfg_fastPollInterval
@@ -47,9 +48,10 @@ Kirigami.FormLayout {
         runner.run("printf %s " + shq(t) + " | bash " + shq(scriptPath) + " secret-set",
             function (out, code) {
                 if (code === 0) {
-                    // toggle so main.qml's onTokenSavedChanged always fires
-                    cfg_tokenSaved = false;
                     cfg_tokenSaved = true;
+                    // unique value every save -> main.qml reloads the token
+                    // even when one valid token replaces another
+                    cfg_tokenStamp = "" + Date.now();
                     testToken(t);
                 } else {
                     testResult = i18n("Could not store the token (is secret-tool or kwallet-query installed?)");

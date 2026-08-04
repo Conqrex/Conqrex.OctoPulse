@@ -9,6 +9,10 @@
             <label>A GitHub token has been stored in the keyring</label>
             <default>false</default>
         </entry>
+        <entry name="tokenStamp" type="String">
+            <label>Timestamp of the last token save (forces a reload)</label>
+            <default></default>
+        </entry>
         <entry name="pollInterval" type="Int">
             <label>Workflow runs refresh interval (seconds)</label>
             <default>60</default>
