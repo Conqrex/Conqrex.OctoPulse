@@ -49,13 +49,35 @@ Item {
     Layout.preferredWidth: Kirigami.Units.gridUnit * 30
     Layout.preferredHeight: Kirigami.Units.gridUnit * 32
 
-    // banner palette mapped onto theme colors (light/dark safe)
+    // OctoPulse dark palette (banner look). Overriding the Kirigami theme
+    // scope recolors every PlasmaComponents/Kirigami child in one place;
+    // the config toggle falls back to the system theme.
+    readonly property bool sysTheme: Plasmoid.configuration.useSystemTheme
+    Kirigami.Theme.inherit: sysTheme
+    Kirigami.Theme.colorSet: Kirigami.Theme.View
+    Kirigami.Theme.backgroundColor: "#0d1526"
+    Kirigami.Theme.textColor: "#e6edf3"
+    Kirigami.Theme.disabledTextColor: "#8b96a5"
+    Kirigami.Theme.highlightColor: "#3b82f6"
+    Kirigami.Theme.positiveTextColor: "#3fb950"
+    Kirigami.Theme.negativeTextColor: "#f85149"
+    Kirigami.Theme.neutralTextColor: "#d29922"
+
     function bucketColor(b) {
         return b === "running" ? Kirigami.Theme.highlightColor
              : b === "queued" ? Kirigami.Theme.neutralTextColor
              : b === "success" ? Kirigami.Theme.positiveTextColor
              : b === "failure" ? Kirigami.Theme.negativeTextColor
              : Kirigami.Theme.disabledTextColor;
+    }
+
+    // navy canvas behind everything when the OctoPulse look is on
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: -Kirigami.Units.smallSpacing
+        visible: !fv.sysTheme
+        radius: Kirigami.Units.cornerRadius
+        color: "#0d1526"
     }
 
     function rowVisible(m) {
@@ -286,7 +308,7 @@ Item {
                     height: hdrRow.implicitHeight + Kirigami.Units.smallSpacing * 2
                     anchors.bottom: parent.bottom
                     radius: Kirigami.Units.cornerRadius
-                    color: Qt.alpha(Kirigami.Theme.textColor, 0.05)
+                    color: Qt.alpha(Kirigami.Theme.textColor, 0.08)
 
                     MouseArea {
                         anchors.fill: parent

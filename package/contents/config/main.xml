@@ -33,6 +33,10 @@
             <default>7</default>
             <min>1</min>
         </entry>
+        <entry name="useSystemTheme" type="Bool">
+            <label>Follow the system color theme instead of the OctoPulse dark palette</label>
+            <default>false</default>
+        </entry>
         <entry name="favoriteRepos" type="String">
             <label>Comma-separated owner/repo names pinned to the top</label>
             <default></default>

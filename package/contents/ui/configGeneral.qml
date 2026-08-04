@@ -7,6 +7,8 @@ Kirigami.FormLayout {
     id: page
 
     property bool cfg_tokenSaved
+    property string cfg_tokenStamp
+    property alias cfg_useSystemTheme: sysThemeBox.checked
     property alias cfg_pollInterval: pollSpin.value
     property alias cfg_fastPollInterval: fastSpin.value
     property alias cfg_discoveryInterval: discoverySpin.value
@@ -52,6 +54,14 @@ Kirigami.FormLayout {
         Kirigami.FormData.label: i18n("Exclude repos:")
         placeholderText: i18n("owner/repo, owner/other")
         Layout.preferredWidth: Kirigami.Units.gridUnit * 18
+    }
+
+    QQC2.Label { Kirigami.FormData.isSection: true; text: i18n("Appearance") }
+
+    QQC2.CheckBox {
+        id: sysThemeBox
+        Kirigami.FormData.label: i18n("Colors:")
+        text: i18n("follow the system theme (instead of the OctoPulse dark look)")
     }
 
     QQC2.Label { Kirigami.FormData.isSection: true; text: i18n("Notifications") }

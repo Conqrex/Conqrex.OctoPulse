@@ -32,7 +32,7 @@ Item {
         radius: Kirigami.Units.cornerRadius
         color: hoverArea.containsMouse || row.expanded
                ? Qt.alpha(Kirigami.Theme.highlightColor, 0.10)
-               : Qt.alpha(Kirigami.Theme.textColor, 0.02)
+               : Qt.alpha(Kirigami.Theme.textColor, 0.045)
 
         SequentialAnimation on opacity {
             running: Fmt.isActive(row.model.bucket) && row.shown
