@@ -79,11 +79,12 @@ Item {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing
 
-            Kirigami.Avatar {
+            Image {
                 source: fv.poller.avatarUrl
-                name: fv.poller.login
+                visible: fv.poller.avatarUrl !== ""
                 Layout.preferredWidth: Kirigami.Units.iconSizes.medium
                 Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                fillMode: Image.PreserveAspectCrop
             }
             ColumnLayout {
                 spacing: 0

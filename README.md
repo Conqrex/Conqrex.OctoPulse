@@ -26,7 +26,7 @@ clicking the Actions tab.
 ## Install
 
 ```sh
-git clone https://github.com/SancaK9/Conqrex.OctoPulse.git
+git clone https://github.com/Conqrex/Conqrex.OctoPulse.git
 cd Conqrex.OctoPulse
 ./install.sh
 ```
@@ -69,7 +69,7 @@ The token is stored via `secret-tool` (Secret Service / KWallet) under
 
 ## Sibling project
 
-[Conqrex.Dockswain](https://github.com/SancaK9/Conqrex.Dockswain) — manage
+[Conqrex.Dockswain](https://github.com/Conqrex/Conqrex.Dockswain) — manage
 Docker hosts over SSH from your panel.
 
 ## Development
