@@ -1,0 +1,51 @@
+{
+  "total_count": 2,
+  "jobs": [
+    {
+      "id": 7000000001,
+      "run_id": 9000000001,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-08-04T20:05:10Z",
+      "completed_at": "2026-08-04T20:06:40Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        }
+      ]
+    },
+    {
+      "id": 7000000002,
+      "run_id": 9000000001,
+      "name": "deploy",
+      "status": "in_progress",
+      "conclusion": null,
+      "started_at": "2026-08-04T20:06:45Z",
+      "completed_at": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Deploy to staging",
+          "status": "in_progress",
+          "conclusion": null,
+          "number": 2
+        }
+      ]
+    }
+  ]
+}

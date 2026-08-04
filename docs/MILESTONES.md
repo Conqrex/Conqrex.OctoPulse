@@ -46,7 +46,7 @@ Goal: the core product — live view of all workflow runs.
 - [x] Compact view states: green / orange pulse (running) / red + count
 - [x] Tooltip with last three runs
 - [x] Stale indicator + last-updated stamp on network loss
-- [ ] JSON fixtures under `docs/fixtures/` for model verification
+- [x] JSON fixtures under `docs/fixtures/` for model verification
 
 **Done when:** panel badge reflects real CI state across all repos and the
 popup updates live while a run progresses.
