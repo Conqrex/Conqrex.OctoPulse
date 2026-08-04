@@ -18,7 +18,7 @@ QQC2.Dialog {
     // [{name, description, def, type, options[]}]
     property var inputs: []
     property bool parsing: false
-    property string result: ""
+    property string statusMsg: ""
     property bool sending: false
 
     title: i18n("Run workflow — %1", repo)
@@ -35,7 +35,7 @@ QQC2.Dialog {
         defaultRef = m.branch || "main";
         refField.text = defaultRef;
         inputs = [];
-        result = "";
+        statusMsg = "";
         parsing = true;
         open();
         poller.fetchWorkflowFile(repo, workflowPath, function (text) {
@@ -87,7 +87,7 @@ QQC2.Dialog {
 
     function send() {
         sending = true;
-        result = "";
+        statusMsg = "";
         var vals = {};
         for (var i = 0; i < inputRepeater.count; i++) {
             var item = inputRepeater.itemAt(i);
@@ -95,7 +95,7 @@ QQC2.Dialog {
         }
         poller.dispatch(repo, workflowId, refField.text.trim(), vals, function (ok, msg) {
             dlg.sending = false;
-            dlg.result = ok ? i18n("✔ Workflow dispatched") : i18n("✘ %1", msg);
+            dlg.statusMsg = ok ? i18n("✔ Workflow dispatched") : i18n("✘ %1", msg);
         });
     }
 
@@ -153,9 +153,9 @@ QQC2.Dialog {
         }
 
         QQC2.Label {
-            visible: dlg.result !== ""
-            text: dlg.result
-            color: dlg.result.indexOf("✔") === 0
+            visible: dlg.statusMsg !== ""
+            text: dlg.statusMsg
+            color: dlg.statusMsg.indexOf("✔") === 0
                    ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.negativeTextColor
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
