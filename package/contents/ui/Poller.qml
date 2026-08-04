@@ -11,7 +11,7 @@ Item {
     // notify(summary, body) — provided by main.qml (executable engine).
     property var notify: function (s, b) {}
 
-    property bool enabled: false
+    property bool polling: false
 
     // account
     property string login: ""
@@ -34,7 +34,7 @@ Item {
     property var lastConclusion: ({})
     property bool initialLoadDone: false
 
-    onEnabledChanged: if (enabled) start()
+    onPollingChanged: if (polling) start()
     function start() {
         login = ""; avatarUrl = "";
         client.request("GET", "/user", null, function (r) {
@@ -49,7 +49,7 @@ Item {
     // --- discovery ---------------------------------------------------------
     Timer {
         interval: Math.max(300, Plasmoid.configuration.discoveryInterval) * 1000
-        running: poller.enabled
+        running: poller.polling
         repeat: true
         onTriggered: poller.discover()
     }
@@ -105,7 +105,7 @@ Item {
         interval: (poller.runningCount > 0
                    ? Math.max(5, Plasmoid.configuration.fastPollInterval)
                    : Math.max(15, Plasmoid.configuration.pollInterval)) * 1000
-        running: poller.enabled
+        running: poller.polling
         repeat: true
         onTriggered: poller.refreshRuns()
     }

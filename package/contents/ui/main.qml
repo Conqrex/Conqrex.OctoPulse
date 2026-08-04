@@ -50,11 +50,11 @@ PlasmoidItem {
             if (t) {
                 client.token = t;
                 authState = "ready";
-                poller.enabled = true;
+                poller.polling = true;
                 if (poller.login === "") poller.start();
             } else {
                 authState = "no-token";
-                poller.enabled = false;
+                poller.polling = false;
             }
         });
     }
