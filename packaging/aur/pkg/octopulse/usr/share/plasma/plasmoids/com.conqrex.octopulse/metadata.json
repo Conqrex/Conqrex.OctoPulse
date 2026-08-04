@@ -1,0 +1,19 @@
+{
+    "KPlugin": {
+        "Id": "com.conqrex.octopulse",
+        "Name": "OctoPulse",
+        "Description": "Follow every GitHub Actions workflow run across all your repositories and organizations from one panel widget: live status, re-run, cancel, and failure notifications.",
+        "Icon": "com.conqrex.octopulse",
+        "Category": "System Information",
+        "License": "MIT",
+        "Version": "0.1.0",
+        "Authors": [
+            {
+                "Name": "Serhan Aydinicen",
+                "Email": "saydinicen9@gmail.com"
+            }
+        ]
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

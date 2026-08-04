@@ -6,13 +6,13 @@ pkgver=0.1.0
 pkgrel=1
 pkgdesc='KDE Plasma 6 widget to follow GitHub Actions across all your repos and orgs (live runs, re-run/cancel, dispatch, inline logs)'
 arch=('any')
-url='https://github.com/Conqrex/Conqrex.OctoPulse'
+url='https://github.com/SancaK9/Conqrex.OctoPulse'
 license=('MIT')
 depends=('plasma-workspace' 'curl')
 optdepends=('libsecret: keep the GitHub token in the keyring (secret-tool)'
             'libnotify: failure/recovery desktop notifications')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('938133f16b5f7cce18bf9525ff95d97752c1a46d3ca17f345f416eb9b7b6ed45')
+sha256sums=('SKIP')
 
 package() {
     install -dm755 "$pkgdir/usr/share/plasma/plasmoids/$_id"
