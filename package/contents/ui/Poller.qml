@@ -23,6 +23,8 @@ Item {
     property var runsByRepo: ({})
 
     property ListModel runsModel: ListModel {}
+    // repo -> { running, failed, total } for the group headers
+    property var repoStats: ({})
     property int runningCount: 0
     property int failedCount: 0
     property string lastUpdated: ""
@@ -164,6 +166,16 @@ Item {
         }
         while (runsModel.count > arr.length)
             runsModel.remove(runsModel.count - 1);
+
+        var stats = {};
+        arr.forEach(function (r) {
+            if (!stats[r.repo]) stats[r.repo] = { running: 0, failed: 0, total: 0 };
+            var s = stats[r.repo];
+            s.total++;
+            if (r.bucket === "running") s.running++;
+            else if (r.bucket === "failure") s.failed++;
+        });
+        repoStats = stats;
 
         recount(arr);
         checkTransitions(arr);

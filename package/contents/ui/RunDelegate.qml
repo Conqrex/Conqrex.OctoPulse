@@ -36,7 +36,19 @@ Item {
         radius: Kirigami.Units.cornerRadius
         color: hoverArea.containsMouse || row.expanded
                ? Qt.alpha(Kirigami.Theme.highlightColor, 0.10)
-               : "transparent"
+               : Qt.alpha(Kirigami.Theme.textColor, 0.02)
+
+        // status accent bar on the left edge
+        Rectangle {
+            width: 3
+            height: parent.height - 6
+            anchors.left: parent.left
+            anchors.leftMargin: 2
+            anchors.verticalCenter: parent.verticalCenter
+            radius: 1.5
+            color: row.stateColor
+            opacity: row.model.bucket === "neutral" ? 0.3 : 0.9
+        }
 
         SequentialAnimation on opacity {
             running: row.model.bucket === "running" && row.shown
@@ -55,8 +67,8 @@ Item {
 
         ColumnLayout {
             id: col
-            width: parent.width - Kirigami.Units.smallSpacing * 2
-            x: Kirigami.Units.smallSpacing
+            width: parent.width - Kirigami.Units.smallSpacing * 2 - 6
+            x: Kirigami.Units.smallSpacing + 6
             y: Kirigami.Units.smallSpacing
             spacing: 2
 

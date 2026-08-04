@@ -16,6 +16,13 @@ Item {
 
     property string filterMode: "all"     // all | running | failed
     property string searchText: ""
+    // repo -> true when its group is collapsed
+    property var collapsedRepos: ({})
+    function toggleRepo(r) {
+        var m = Object.assign({}, collapsedRepos);
+        if (m[r]) delete m[r]; else m[r] = true;
+        collapsedRepos = m;
+    }
 
     implicitWidth: Kirigami.Units.gridUnit * 30
     implicitHeight: Kirigami.Units.gridUnit * 32
@@ -25,6 +32,7 @@ Item {
     Layout.preferredHeight: Kirigami.Units.gridUnit * 32
 
     function rowVisible(m) {
+        if (collapsedRepos[m.repo]) return false;
         if (filterMode === "running" && m.bucket !== "running") return false;
         if (filterMode === "failed" && m.bucket !== "failure") return false;
         if (searchText) {
@@ -71,12 +79,11 @@ Item {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing
 
-            Image {
+            Kirigami.Avatar {
                 source: fv.poller.avatarUrl
-                visible: fv.poller.avatarUrl !== ""
+                name: fv.poller.login
                 Layout.preferredWidth: Kirigami.Units.iconSizes.medium
                 Layout.preferredHeight: Kirigami.Units.iconSizes.medium
-                fillMode: Image.PreserveAspectFit
             }
             ColumnLayout {
                 spacing: 0
@@ -134,7 +141,9 @@ Item {
             explanation: i18n("Update the token in the widget settings under Account.")
         }
 
-        // --- search + filters ----------------------------------------------
+        Kirigami.Separator { Layout.fillWidth: true }
+
+        // --- search + filter chips -----------------------------------------
         RowLayout {
             visible: fv.ctrl.authState === "ready"
             Layout.fillWidth: true
@@ -145,19 +154,35 @@ Item {
                 placeholderText: i18n("Search repo, workflow, branch…")
                 onTextChanged: fv.searchText = text
             }
-            PlasmaComponents.TabBar {
-                id: filterBar
-                currentIndex: 0
-                onCurrentIndexChanged:
-                    fv.filterMode = ["all", "running", "failed"][currentIndex]
-                PlasmaComponents.TabButton { text: i18n("All") }
-                PlasmaComponents.TabButton {
-                    text: fv.poller.runningCount > 0
-                          ? i18n("Running (%1)", fv.poller.runningCount) : i18n("Running")
-                }
-                PlasmaComponents.TabButton {
-                    text: fv.poller.failedCount > 0
-                          ? i18n("Failed (%1)", fv.poller.failedCount) : i18n("Failed")
+
+            Repeater {
+                model: [
+                    { key: "all", label: i18n("All"), count: 0, color: "" },
+                    { key: "running", label: i18n("Running"), count: fv.poller.runningCount, color: "neutral" },
+                    { key: "failed", label: i18n("Failed"), count: fv.poller.failedCount, color: "negative" }
+                ]
+                delegate: PlasmaComponents.Button {
+                    required property var modelData
+                    readonly property bool active: fv.filterMode === modelData.key
+                    text: modelData.count > 0
+                          ? modelData.label + " " + modelData.count : modelData.label
+                    checkable: true
+                    checked: active
+                    flat: !active
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    onClicked: fv.filterMode = modelData.key
+                    // colored hint dot for running/failed chips
+                    leftPadding: modelData.count > 0 ? Kirigami.Units.gridUnit : undefined
+                    Rectangle {
+                        visible: parent.modelData.count > 0
+                        width: 7; height: 7; radius: 3.5
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: 6
+                        color: parent.modelData.color === "negative"
+                               ? Kirigami.Theme.negativeTextColor
+                               : Kirigami.Theme.neutralTextColor
+                    }
                 }
             }
         }
@@ -173,14 +198,91 @@ Item {
             model: fv.poller.runsModel
 
             section.property: "repo"
-            section.delegate: PlasmaComponents.Label {
+            section.delegate: Item {
                 required property string section
+                readonly property var stats: fv.poller.repoStats[section] || null
+                readonly property bool collapsed: !!fv.collapsedRepos[section]
                 width: list.width
-                text: section
-                font.bold: true
-                opacity: 0.7
-                topPadding: Kirigami.Units.smallSpacing * 2
-                bottomPadding: 2
+                height: hdrCard.height + Kirigami.Units.smallSpacing
+
+                Rectangle {
+                    id: hdrCard
+                    width: parent.width
+                    height: hdrRow.implicitHeight + Kirigami.Units.smallSpacing * 2
+                    anchors.bottom: parent.bottom
+                    radius: Kirigami.Units.cornerRadius
+                    color: Qt.alpha(Kirigami.Theme.textColor, 0.05)
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: fv.toggleRepo(section)
+                    }
+
+                    RowLayout {
+                        id: hdrRow
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.leftMargin: Kirigami.Units.smallSpacing
+                        anchors.rightMargin: Kirigami.Units.smallSpacing
+                        spacing: Kirigami.Units.smallSpacing
+
+                        Kirigami.Icon {
+                            source: "arrow-down"
+                            rotation: collapsed ? -90 : 0
+                            Behavior on rotation { NumberAnimation { duration: 120 } }
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                            opacity: 0.7
+                        }
+                        PlasmaComponents.Label {
+                            text: section
+                            font.bold: true
+                            elide: Text.ElideMiddle
+                            Layout.fillWidth: true
+                        }
+                        // running badge
+                        RowLayout {
+                            visible: stats && stats.running > 0
+                            spacing: 2
+                            PlasmaComponents.BusyIndicator {
+                                Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                                Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                            }
+                            PlasmaComponents.Label {
+                                text: stats ? stats.running : ""
+                                color: Kirigami.Theme.neutralTextColor
+                                font.bold: true
+                                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                            }
+                        }
+                        // failed badge
+                        PlasmaComponents.Label {
+                            visible: stats && stats.failed > 0
+                            text: "✗ " + (stats ? stats.failed : "")
+                            color: Kirigami.Theme.negativeTextColor
+                            font.bold: true
+                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        }
+                        // all-green badge
+                        Kirigami.Icon {
+                            visible: stats && stats.failed === 0 && stats.running === 0
+                            source: "dialog-ok-apply"
+                            color: Kirigami.Theme.positiveTextColor
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                        }
+                        // hidden-count hint while collapsed
+                        PlasmaComponents.Label {
+                            visible: collapsed && stats
+                            text: stats ? i18n("%1 runs", stats.total) : ""
+                            opacity: 0.5
+                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        }
+                    }
+                }
             }
 
             delegate: RunDelegate {
