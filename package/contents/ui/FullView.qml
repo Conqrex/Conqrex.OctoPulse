@@ -17,6 +17,8 @@ Item {
     property string filterMode: "all"     // all | running | failed
     property string searchText: ""
 
+    implicitWidth: Kirigami.Units.gridUnit * 30
+    implicitHeight: Kirigami.Units.gridUnit * 32
     Layout.minimumWidth: Kirigami.Units.gridUnit * 24
     Layout.minimumHeight: Kirigami.Units.gridUnit * 24
     Layout.preferredWidth: Kirigami.Units.gridUnit * 30
