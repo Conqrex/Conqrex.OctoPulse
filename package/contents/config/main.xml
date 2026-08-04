@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+    <group name="General">
+        <entry name="tokenSaved" type="Bool">
+            <label>A GitHub token has been stored in the keyring</label>
+            <default>false</default>
+        </entry>
+        <entry name="pollInterval" type="Int">
+            <label>Workflow runs refresh interval (seconds)</label>
+            <default>60</default>
+            <min>15</min>
+        </entry>
+        <entry name="fastPollInterval" type="Int">
+            <label>Refresh interval while runs are in progress (seconds)</label>
+            <default>10</default>
+            <min>5</min>
+        </entry>
+        <entry name="discoveryInterval" type="Int">
+            <label>Repository discovery interval (seconds)</label>
+            <default>900</default>
+            <min>300</min>
+        </entry>
+        <entry name="lookbackDays" type="Int">
+            <label>Watch repos pushed within this many days</label>
+            <default>7</default>
+            <min>1</min>
+        </entry>
+        <entry name="excludedRepos" type="String">
+            <label>Comma-separated owner/repo names to ignore</label>
+            <default></default>
+        </entry>
+        <entry name="notifyFailure" type="Bool">
+            <label>Notify when a workflow run fails</label>
+            <default>true</default>
+        </entry>
+        <entry name="notifyRecovery" type="Bool">
+            <label>Notify when a workflow recovers after a failure</label>
+            <default>true</default>
+        </entry>
+        <entry name="runsPerRepo" type="Int">
+            <label>Recent runs fetched per repository</label>
+            <default>10</default>
+            <min>1</min>
+            <max>30</max>
+        </entry>
+    </group>
+</kcfg>

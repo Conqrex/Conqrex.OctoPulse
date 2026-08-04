@@ -1,0 +1,115 @@
+# OctoPulse — Milestones
+
+Roadmap for `com.conqrex.octopulse`. Each milestone is independently
+shippable and testable with `plasmoidviewer`. See
+[DESIGN.md](DESIGN.md) for the full design.
+
+## M0 — Skeleton
+
+Goal: widget installs and shows placeholder content in panel and popup.
+
+- [ ] `package/metadata.json` (KPlugin, `Plasma/Applet`, API ≥ 6.0)
+- [ ] `contents/ui/main.qml` with compact/full representation wiring
+- [ ] `CompactView.qml` stub (static icon) and `FullView.qml` stub
+- [ ] `contents/config/config.qml` + `main.xml` skeleton
+- [ ] `contents/icons/conqrex-octopulse.svg` first-pass icon
+- [ ] `install.sh` (copy of Dockswain pattern, adjusted id)
+- [ ] Loads without errors in `plasmoidviewer` and in plasmashell
+
+**Done when:** widget can be added to a panel and opens an empty popup.
+
+## M1 — Auth + Discovery
+
+Goal: token stored securely; widget knows all watchable repos.
+
+- [ ] `configAccount.qml`: PAT entry field, save to KWallet, connection test
+      (`GET /user`, show avatar + login on success)
+- [ ] `octopulse.sh`: KWallet get/set via `kwallet-query`, `secret-tool`
+      fallback, `notify-send` wrapper
+- [ ] `GitHubClient.qml`: auth headers, ETag cache, request queue,
+      rate-limit tracking, typed error signals
+- [ ] Discovery loop: user repos + org repos, paginated, ETag-cached,
+      15-minute cadence
+- [ ] 401 banner + polling pause behavior
+
+**Done when:** popup lists discovered repo names with `pushed_at` dates.
+
+## M2 — Runs Feed
+
+Goal: the core product — live view of all workflow runs.
+
+- [ ] Runs loop with lookback window filter and per-repo ETag caching
+- [ ] Fast-poll escalation while runs are queued/in progress
+- [ ] `RunsModel` with in-place diffing keyed by run id
+- [ ] `FullView.qml`: repo-grouped run list, `RunDelegate.qml` rows
+      (status icon, workflow, branch, commit message, actor, times, duration)
+- [ ] Compact view states: green / orange pulse (running) / red + count
+- [ ] Tooltip with last three runs
+- [ ] Stale indicator + last-updated stamp on network loss
+- [ ] JSON fixtures under `docs/fixtures/` for model verification
+
+**Done when:** panel badge reflects real CI state across all repos and the
+popup updates live while a run progresses.
+
+## M3 — Run Actions
+
+Goal: act on runs without a browser.
+
+- [ ] Re-run all / re-run failed jobs / cancel buttons with optimistic
+      status update and error rollback
+- [ ] `DispatchDialog.qml`: read `workflow_dispatch` inputs from workflow
+      file, render input form, POST dispatch with `ref` + `inputs`
+- [ ] Open-in-browser action on every run row
+- [ ] Confirmation on cancel
+
+**Done when:** a failed run can be re-run and a dispatch workflow started
+entirely from the widget.
+
+## M4 — Logs
+
+Goal: read CI output inline.
+
+- [ ] `JobList.qml`: jobs + steps with per-step status on row expand
+- [ ] `LogView.qml`: per-job plain-text logs, monospace pane, copy button
+- [ ] Live follow for running jobs (re-fetch on fast interval, auto-scroll,
+      follow toggle)
+
+**Done when:** a running job's log can be watched to completion inside the
+popup.
+
+## M5 — Notifications + Polish
+
+Goal: feels finished; ready to show publicly.
+
+- [ ] Failure and recovery notifications with per-event toggles
+- [ ] `configGeneral.qml`: poll intervals, lookback window, exclude list,
+      notification settings
+- [ ] Search field and filter chips (All / Running / Failed)
+- [ ] Rate-limit meter in header with back-off countdown when limited
+- [ ] Expand/collapse height animations, running-row pulse animation
+- [ ] Light/dark theme pass — no hardcoded colors
+
+**Done when:** widget survives a week of daily use with no manual restarts
+and looks native in both themes.
+
+## M6 — Release
+
+Goal: public open-source release.
+
+- [ ] README with screenshots/GIF, install instructions, PAT scope guide
+      (`repo` or fine-grained `actions:read/write`)
+- [ ] LICENSE (MIT, matching Dockswain)
+- [ ] `packaging/aur/` PKGBUILD + repo publishing (Dockswain pattern)
+- [ ] KDE Store (store.kde.org) submission
+- [ ] Version 0.1.0 tag, GitHub release
+
+**Done when:** a stranger can install from AUR or KDE Store and get to a
+working feed in under five minutes.
+
+## Later (post-v1 backlog)
+
+- Multiple accounts (tabs, like Dockswain servers)
+- GitHub Enterprise base URL support
+- Artifact download/browse
+- Per-repo notification rules
+- Workflow run history charts (duration trends, failure rates)
