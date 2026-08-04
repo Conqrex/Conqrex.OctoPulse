@@ -14,6 +14,12 @@ else
     kpackagetool6 -t Plasma/Applet -i "$PKG"
 fi
 
+# the widget-explorer icon resolves through the icon theme, not the package
+ICONDIR="$HOME/.local/share/icons/hicolor/scalable/apps"
+mkdir -p "$ICONDIR"
+cp "$PKG/contents/icons/$ID.svg" "$ICONDIR/$ID.svg"
+rm -f "$HOME/.cache/icon-cache.kcache"
+
 echo
 echo "Installed to ~/.local/share/plasma/plasmoids/$ID/"
 echo "Add it: right-click your desktop or panel -> Add Widgets -> search 'OctoPulse'."
