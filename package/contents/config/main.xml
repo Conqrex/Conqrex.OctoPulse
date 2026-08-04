@@ -41,6 +41,10 @@
             <label>Comma-separated owner/repo names pinned to the top</label>
             <default></default>
         </entry>
+        <entry name="excludedOwners" type="String">
+            <label>Comma-separated owners (users/orgs) whose repos are hidden</label>
+            <default></default>
+        </entry>
         <entry name="excludedRepos" type="String">
             <label>Comma-separated owner/repo names to ignore</label>
             <default></default>

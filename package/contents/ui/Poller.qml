@@ -97,8 +97,14 @@ Item {
     function watchedRepos() {
         var cutoff = Date.now() - Plasmoid.configuration.lookbackDays * 86400 * 1000;
         var ex = excludedSet();
+        var exOwners = {};
+        ("" + (Plasmoid.configuration.excludedOwners || "")).split(",").forEach(function (x) {
+            var t = x.trim(); if (t) exOwners[t] = 1;
+        });
         return repos.filter(function (r) {
-            return !ex[r.fullName] && r.pushedAt && Date.parse(r.pushedAt) >= cutoff;
+            return !ex[r.fullName]
+                && !exOwners[r.fullName.split("/")[0]]
+                && r.pushedAt && Date.parse(r.pushedAt) >= cutoff;
         });
     }
 
