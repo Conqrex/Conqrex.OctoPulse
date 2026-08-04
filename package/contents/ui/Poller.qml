@@ -161,7 +161,7 @@ Item {
         var meta = {};
         arr.forEach(function (r) {
             var m = meta[r.repo] || (meta[r.repo] = { running: false, newest: "" });
-            if (r.bucket === "running") m.running = true;
+            if (Fmt.isActive(r.bucket)) m.running = true;
             if (r.startedAt > m.newest) m.newest = r.startedAt;
         });
         arr.sort(function (a, b) {
@@ -173,8 +173,8 @@ Item {
                 if (ma.newest !== mb.newest) return ma.newest < mb.newest ? 1 : -1;
                 return a.repo < b.repo ? -1 : 1;
             }
-            var ar = a.bucket === "running" ? 0 : 1;
-            var br = b.bucket === "running" ? 0 : 1;
+            var ar = Fmt.isActive(a.bucket) ? 0 : 1;
+            var br = Fmt.isActive(b.bucket) ? 0 : 1;
             if (ar !== br) return ar - br;
             return a.startedAt < b.startedAt ? 1 : -1;
         });
@@ -193,7 +193,7 @@ Item {
             if (!stats[r.repo]) stats[r.repo] = { running: 0, failed: 0, total: 0 };
             var s = stats[r.repo];
             s.total++;
-            if (r.bucket === "running") s.running++;
+            if (Fmt.isActive(r.bucket)) s.running++;
             else if (r.bucket === "failure") s.failed++;
         });
         repoStats = stats;
@@ -228,7 +228,7 @@ Item {
         // newest completed run per repo+workflow decides "currently failed"
         var newest = {};
         arr.forEach(function (r) {
-            if (r.bucket === "running") { running++; return; }
+            if (Fmt.isActive(r.bucket)) { running++; return; }
             var k = r.repo + " — " + r.workflow;
             if (!newest[k] || newest[k].startedAt < r.startedAt) newest[k] = r;
         });

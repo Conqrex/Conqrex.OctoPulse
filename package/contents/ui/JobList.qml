@@ -64,10 +64,7 @@ ColumnLayout {
 
                 Kirigami.Icon {
                     source: Fmt.bucketIcon(jobItem.jobBucket)
-                    color: jobItem.jobBucket === "running" ? Kirigami.Theme.neutralTextColor
-                         : jobItem.jobBucket === "success" ? Kirigami.Theme.positiveTextColor
-                         : jobItem.jobBucket === "failure" ? Kirigami.Theme.negativeTextColor
-                         : Kirigami.Theme.disabledTextColor
+                    color: jl.fullView.bucketColor(jobItem.jobBucket)
                     Layout.preferredWidth: Kirigami.Units.iconSizes.small
                     Layout.preferredHeight: Kirigami.Units.iconSizes.small
                 }
@@ -102,9 +99,7 @@ ColumnLayout {
                     spacing: Kirigami.Units.smallSpacing
                     Kirigami.Icon {
                         source: Fmt.bucketIcon(Fmt.bucket(modelData.status, modelData.conclusion))
-                        color: modelData.conclusion === "failure"
-                               ? Kirigami.Theme.negativeTextColor
-                               : Kirigami.Theme.neutralTextColor
+                        color: jl.fullView.bucketColor(Fmt.bucket(modelData.status, modelData.conclusion))
                         Layout.preferredWidth: Kirigami.Units.iconSizes.small
                         Layout.preferredHeight: Kirigami.Units.iconSizes.small
                     }

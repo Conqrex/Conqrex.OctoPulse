@@ -28,11 +28,12 @@ function truncate(s, n) {
 }
 
 // Map a run's status/conclusion pair to a semantic bucket the UI colors by.
-// Buckets: running, success, failure, cancelled, neutral.
+// Buckets: running, queued, success, failure, cancelled, neutral.
 function bucket(status, conclusion) {
-    if (status === "queued" || status === "in_progress" || status === "waiting"
+    if (status === "in_progress") return "running";
+    if (status === "queued" || status === "waiting"
         || status === "requested" || status === "pending")
-        return "running";
+        return "queued";
     switch (conclusion) {
     case "success": return "success";
     case "failure":
@@ -42,11 +43,26 @@ function bucket(status, conclusion) {
     }
 }
 
+// true when the bucket represents an unfinished run
+function isActive(b) { return b === "running" || b === "queued"; }
+
+function statusText(b) {
+    switch (b) {
+    case "running": return "in progress";
+    case "queued": return "queued";
+    case "success": return "success";
+    case "failure": return "failure";
+    case "cancelled": return "cancelled";
+    default: return "";
+    }
+}
+
 function bucketIcon(b) {
     switch (b) {
     case "running": return "view-refresh";
-    case "success": return "dialog-ok-apply";
-    case "failure": return "dialog-error";
+    case "queued": return "clock";
+    case "success": return "checkmark";
+    case "failure": return "dialog-close";
     case "cancelled": return "dialog-cancel";
     default: return "dialog-question";
     }

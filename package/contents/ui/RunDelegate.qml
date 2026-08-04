@@ -16,11 +16,7 @@ Item {
     property bool expanded: false
 
     readonly property bool shown: fullView.rowVisible(model)
-    readonly property color stateColor:
-        model.bucket === "running" ? Kirigami.Theme.neutralTextColor
-      : model.bucket === "success" ? Kirigami.Theme.positiveTextColor
-      : model.bucket === "failure" ? Kirigami.Theme.negativeTextColor
-      : Kirigami.Theme.disabledTextColor
+    readonly property color stateColor: fullView.bucketColor(model.bucket)
 
     visible: shown
     height: shown ? card.implicitHeight + 2 : 0
@@ -38,20 +34,8 @@ Item {
                ? Qt.alpha(Kirigami.Theme.highlightColor, 0.10)
                : Qt.alpha(Kirigami.Theme.textColor, 0.02)
 
-        // status accent bar on the left edge
-        Rectangle {
-            width: 3
-            height: parent.height - 6
-            anchors.left: parent.left
-            anchors.leftMargin: 2
-            anchors.verticalCenter: parent.verticalCenter
-            radius: 1.5
-            color: row.stateColor
-            opacity: row.model.bucket === "neutral" ? 0.3 : 0.9
-        }
-
         SequentialAnimation on opacity {
-            running: row.model.bucket === "running" && row.shown
+            running: Fmt.isActive(row.model.bucket) && row.shown
             loops: Animation.Infinite
             NumberAnimation { to: 0.65; duration: 900; easing.type: Easing.InOutQuad }
             NumberAnimation { to: 1.0;  duration: 900; easing.type: Easing.InOutQuad }
@@ -67,8 +51,8 @@ Item {
 
         ColumnLayout {
             id: col
-            width: parent.width - Kirigami.Units.smallSpacing * 2 - 6
-            x: Kirigami.Units.smallSpacing + 6
+            width: parent.width - Kirigami.Units.smallSpacing * 2
+            x: Kirigami.Units.smallSpacing
             y: Kirigami.Units.smallSpacing
             spacing: 2
 
@@ -76,18 +60,30 @@ Item {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
 
-                // status icon; spins while running
-                Kirigami.Icon {
-                    id: statusIcon
-                    source: Fmt.bucketIcon(row.model.bucket)
-                    color: row.stateColor
-                    Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-                    Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-                    RotationAnimation on rotation {
+                // circular status ring, banner-style; spinner while running
+                Item {
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: width / 2
+                        color: Qt.alpha(row.stateColor, 0.12)
+                        border.width: 2
+                        border.color: row.stateColor
+                        visible: row.model.bucket !== "running"
+                    }
+                    Kirigami.Icon {
+                        anchors.centerIn: parent
+                        width: parent.width * 0.55
+                        height: width
+                        source: Fmt.bucketIcon(row.model.bucket)
+                        color: row.stateColor
+                        visible: row.model.bucket !== "running"
+                    }
+                    PlasmaComponents.BusyIndicator {
+                        anchors.fill: parent
+                        visible: row.model.bucket === "running"
                         running: row.model.bucket === "running" && row.shown
-                        loops: Animation.Infinite
-                        from: 0; to: 360; duration: 1500
-                        onRunningChanged: if (!running) statusIcon.rotation = 0
                     }
                 }
 
@@ -122,16 +118,18 @@ Item {
                     spacing: 0
                     Layout.alignment: Qt.AlignRight
                     PlasmaComponents.Label {
-                        text: Fmt.relTime(row.model.startedAt)
-                        opacity: 0.6
+                        text: Fmt.statusText(row.model.bucket)
+                        color: row.stateColor
+                        font.bold: true
                         font.pointSize: Kirigami.Theme.smallFont.pointSize
                         Layout.alignment: Qt.AlignRight
                     }
                     PlasmaComponents.Label {
-                        text: row.model.bucket === "running"
-                              ? Fmt.duration(row.model.startedAt, "")
-                              : Fmt.duration(row.model.startedAt, row.model.updatedAt)
-                        opacity: 0.6
+                        text: Fmt.relTime(row.model.startedAt) + " · "
+                              + (Fmt.isActive(row.model.bucket)
+                                 ? Fmt.duration(row.model.startedAt, "")
+                                 : Fmt.duration(row.model.startedAt, row.model.updatedAt))
+                        opacity: 0.55
                         font.pointSize: Kirigami.Theme.smallFont.pointSize
                         Layout.alignment: Qt.AlignRight
                     }
@@ -155,7 +153,7 @@ Item {
                     icon.name: "view-refresh"
                     text: i18n("Re-run")
                     display: PlasmaComponents.ToolButton.TextBesideIcon
-                    visible: row.model.bucket !== "running"
+                    visible: !Fmt.isActive(row.model.bucket)
                     onClicked: row.fullView.poller.rerun(row.model.repo, row.model.runId)
                 }
                 PlasmaComponents.ToolButton {
@@ -172,7 +170,7 @@ Item {
                     icon.name: "process-stop"
                     text: armed ? i18n("Sure?") : i18n("Cancel")
                     display: PlasmaComponents.ToolButton.TextBesideIcon
-                    visible: row.model.bucket === "running"
+                    visible: Fmt.isActive(row.model.bucket)
                     onClicked: {
                         if (armed) {
                             armed = false;

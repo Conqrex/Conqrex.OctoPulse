@@ -4,6 +4,7 @@ import org.kde.plasma.plasmoid
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
+import "../code/format.js" as Fmt
 
 // Popup: header (account, rate limit, refresh), search + filter chips, and
 // the run list grouped by repository.
@@ -48,9 +49,18 @@ Item {
     Layout.preferredWidth: Kirigami.Units.gridUnit * 30
     Layout.preferredHeight: Kirigami.Units.gridUnit * 32
 
+    // banner palette mapped onto theme colors (light/dark safe)
+    function bucketColor(b) {
+        return b === "running" ? Kirigami.Theme.highlightColor
+             : b === "queued" ? Kirigami.Theme.neutralTextColor
+             : b === "success" ? Kirigami.Theme.positiveTextColor
+             : b === "failure" ? Kirigami.Theme.negativeTextColor
+             : Kirigami.Theme.disabledTextColor;
+    }
+
     function rowVisible(m) {
         if (collapsedRepos[m.repo]) return false;
-        if (filterMode === "running" && m.bucket !== "running") return false;
+        if (filterMode === "running" && !Fmt.isActive(m.bucket)) return false;
         if (filterMode === "failed" && m.bucket !== "failure") return false;
         if (searchText) {
             var q = searchText.toLowerCase();
@@ -91,44 +101,69 @@ Item {
                        Math.max(0, fv.client.rateReset - fv.nowSec))
         }
 
-        // --- header --------------------------------------------------------
+        // --- header: logo + title | account chip | rate | refresh ---------
         RowLayout {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing
 
             Image {
-                source: fv.poller.avatarUrl
-                visible: fv.poller.avatarUrl !== ""
-                Layout.preferredWidth: Kirigami.Units.iconSizes.medium
-                Layout.preferredHeight: Kirigami.Units.iconSizes.medium
-                fillMode: Image.PreserveAspectCrop
+                source: Qt.resolvedUrl("../icons/octopulse.png")
+                sourceSize.width: 64
+                sourceSize.height: 64
+                Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                fillMode: Image.PreserveAspectFit
             }
-            ColumnLayout {
-                spacing: 0
-                PlasmaComponents.Label {
-                    text: fv.poller.login || i18n("OctoPulse")
-                    font.bold: true
-                }
-                PlasmaComponents.Label {
-                    text: fv.poller.stale ? i18n("offline — last update %1", fv.poller.lastUpdated)
-                        : fv.poller.lastUpdated ? i18n("updated %1", fv.poller.lastUpdated) : ""
-                    opacity: 0.6
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    color: fv.poller.stale ? Kirigami.Theme.negativeTextColor
-                                           : Kirigami.Theme.textColor
-                }
+            PlasmaComponents.Label {
+                text: i18n("OctoPulse")
+                font.bold: true
             }
             Item { Layout.fillWidth: true }
 
-            // rate-limit meter
-            PlasmaComponents.Label {
-                visible: fv.client.rateRemaining >= 0
-                text: i18n("API %1", fv.client.rateRemaining)
-                opacity: 0.6
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                color: fv.client.rateRemaining < 200 ? Kirigami.Theme.negativeTextColor
-                                                     : Kirigami.Theme.textColor
+            // account chip
+            Rectangle {
+                visible: fv.poller.login !== ""
+                radius: height / 2
+                color: Qt.alpha(Kirigami.Theme.textColor, 0.07)
+                implicitHeight: accountRow.implicitHeight + 6
+                implicitWidth: accountRow.implicitWidth + 14
+                RowLayout {
+                    id: accountRow
+                    anchors.centerIn: parent
+                    spacing: 4
+                    Image {
+                        source: fv.poller.avatarUrl
+                        visible: fv.poller.avatarUrl !== ""
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                        fillMode: Image.PreserveAspectCrop
+                    }
+                    PlasmaComponents.Label {
+                        text: fv.poller.login
+                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    }
+                }
             }
+
+            // rate-limit: colored dot + remaining/limit
+            RowLayout {
+                visible: fv.client.rateRemaining >= 0
+                spacing: 4
+                Rectangle {
+                    width: 7; height: 7; radius: 3.5
+                    color: fv.client.rateRemaining < 200
+                           ? Kirigami.Theme.negativeTextColor
+                           : Kirigami.Theme.positiveTextColor
+                }
+                PlasmaComponents.Label {
+                    text: fv.client.rateLimit > 0
+                          ? fv.client.rateRemaining + " / " + fv.client.rateLimit
+                          : "" + fv.client.rateRemaining
+                    opacity: 0.6
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                }
+            }
+
             PlasmaComponents.BusyIndicator {
                 visible: fv.poller.loading
                 Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
@@ -175,31 +210,53 @@ Item {
 
             Repeater {
                 model: [
-                    { key: "all", label: i18n("All"), count: 0, color: "" },
-                    { key: "running", label: i18n("Running"), count: fv.poller.runningCount, color: "neutral" },
-                    { key: "failed", label: i18n("Failed"), count: fv.poller.failedCount, color: "negative" }
+                    { key: "all", label: i18n("All"), count: fv.poller.runsModel.count, bucket: "" },
+                    { key: "running", label: i18n("Running"), count: fv.poller.runningCount, bucket: "queued" },
+                    { key: "failed", label: i18n("Failed"), count: fv.poller.failedCount, bucket: "failure" }
                 ]
-                delegate: PlasmaComponents.Button {
+                delegate: Rectangle {
+                    id: chip
                     required property var modelData
                     readonly property bool active: fv.filterMode === modelData.key
-                    text: modelData.count > 0
-                          ? modelData.label + " " + modelData.count : modelData.label
-                    checkable: true
-                    checked: active
-                    flat: !active
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    onClicked: fv.filterMode = modelData.key
-                    // colored hint dot for running/failed chips
-                    leftPadding: modelData.count > 0 ? Kirigami.Units.gridUnit : undefined
-                    Rectangle {
-                        visible: parent.modelData.count > 0
-                        width: 7; height: 7; radius: 3.5
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.left: parent.left
-                        anchors.leftMargin: 6
-                        color: parent.modelData.color === "negative"
-                               ? Kirigami.Theme.negativeTextColor
-                               : Kirigami.Theme.neutralTextColor
+                    readonly property color accent: modelData.bucket
+                        ? fv.bucketColor(modelData.bucket) : Kirigami.Theme.highlightColor
+
+                    radius: height / 2
+                    implicitHeight: chipRow.implicitHeight + 8
+                    implicitWidth: chipRow.implicitWidth + 18
+                    color: active ? Qt.alpha(accent, 0.22)
+                                  : Qt.alpha(Kirigami.Theme.textColor, 0.06)
+                    border.width: active ? 1 : 0
+                    border.color: Qt.alpha(accent, 0.6)
+
+                    RowLayout {
+                        id: chipRow
+                        anchors.centerIn: parent
+                        spacing: 5
+                        PlasmaComponents.Label {
+                            text: chip.modelData.label
+                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                            font.bold: chip.active
+                        }
+                        Rectangle {
+                            visible: chip.modelData.count > 0
+                            radius: height / 2
+                            implicitHeight: countLbl.implicitHeight + 2
+                            implicitWidth: Math.max(implicitHeight, countLbl.implicitWidth + 8)
+                            color: Qt.alpha(chip.accent, 0.35)
+                            PlasmaComponents.Label {
+                                id: countLbl
+                                anchors.centerIn: parent
+                                text: chip.modelData.count
+                                font.pointSize: Kirigami.Theme.smallFont.pointSize - 1
+                                font.bold: true
+                            }
+                        }
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: fv.filterMode = chip.modelData.key
                     }
                 }
             }
@@ -247,13 +304,22 @@ Item {
                         anchors.rightMargin: Kirigami.Units.smallSpacing
                         spacing: Kirigami.Units.smallSpacing
 
-                        Kirigami.Icon {
-                            source: "arrow-down"
-                            rotation: collapsed ? -90 : 0
-                            Behavior on rotation { NumberAnimation { duration: 120 } }
-                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                            opacity: 0.7
+                        // repo initial in a tinted square, banner-style
+                        Rectangle {
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                            radius: 5
+                            color: Qt.alpha(Kirigami.Theme.highlightColor, 0.25)
+                            PlasmaComponents.Label {
+                                anchors.centerIn: parent
+                                // initial of the repo name (after the owner/)
+                                text: {
+                                    var n = section.split("/").pop();
+                                    return n ? n[0].toUpperCase() : "?";
+                                }
+                                font.bold: true
+                                color: Kirigami.Theme.highlightColor
+                            }
                         }
                         PlasmaComponents.Label {
                             text: section
@@ -303,12 +369,29 @@ Item {
                             Layout.preferredWidth: Kirigami.Units.iconSizes.small
                             Layout.preferredHeight: Kirigami.Units.iconSizes.small
                         }
-                        // hidden-count hint while collapsed
-                        PlasmaComponents.Label {
-                            visible: collapsed && stats
-                            text: stats ? i18n("%1 runs", stats.total) : ""
-                            opacity: 0.5
-                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        // total-runs pill
+                        Rectangle {
+                            visible: !!stats
+                            radius: height / 2
+                            implicitHeight: totalLbl.implicitHeight + 2
+                            implicitWidth: Math.max(implicitHeight, totalLbl.implicitWidth + 10)
+                            color: Qt.alpha(Kirigami.Theme.textColor, 0.10)
+                            PlasmaComponents.Label {
+                                id: totalLbl
+                                anchors.centerIn: parent
+                                text: stats ? stats.total : ""
+                                font.pointSize: Kirigami.Theme.smallFont.pointSize - 1
+                                font.bold: true
+                                opacity: 0.8
+                            }
+                        }
+                        Kirigami.Icon {
+                            source: "arrow-down"
+                            rotation: collapsed ? -90 : 0
+                            Behavior on rotation { NumberAnimation { duration: 120 } }
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                            opacity: 0.6
                         }
                     }
                 }
@@ -327,6 +410,47 @@ Item {
                 text: i18n("No workflow runs")
                 explanation: i18n("Runs from repositories pushed in the last %1 days appear here.",
                                   Plasmoid.configuration.lookbackDays)
+            }
+        }
+
+        Kirigami.Separator {
+            visible: fv.ctrl.authState === "ready"
+            Layout.fillWidth: true
+        }
+
+        // --- footer: freshness + GitHub link -------------------------------
+        RowLayout {
+            visible: fv.ctrl.authState === "ready"
+            Layout.fillWidth: true
+            spacing: Kirigami.Units.smallSpacing
+
+            Rectangle {
+                width: 7; height: 7; radius: 3.5
+                color: fv.poller.stale ? Kirigami.Theme.negativeTextColor
+                                       : Kirigami.Theme.positiveTextColor
+            }
+            PlasmaComponents.Label {
+                text: fv.poller.stale
+                      ? i18n("Offline — last update %1", fv.poller.lastUpdated)
+                      : fv.poller.lastUpdated
+                        ? i18n("Last updated: %1", fv.poller.lastUpdated) : i18n("Loading…")
+                opacity: 0.6
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+            }
+            Item { Layout.fillWidth: true }
+            PlasmaComponents.Label {
+                text: i18n("Open GitHub") + " ⬀"
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                color: linkArea.containsMouse ? Kirigami.Theme.highlightColor
+                                              : Kirigami.Theme.textColor
+                opacity: linkArea.containsMouse ? 1.0 : 0.7
+                MouseArea {
+                    id: linkArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Qt.openUrlExternally("https://github.com/" + fv.poller.login)
+                }
             }
         }
     }

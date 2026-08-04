@@ -10,6 +10,7 @@ QtObject {
     property string apiBase: "https://api.github.com"
 
     property int rateRemaining: -1
+    property int rateLimit: 0
     property int rateReset: 0          // epoch seconds
     property bool limited: false
 
@@ -60,8 +61,10 @@ QtObject {
 
     function handle(req, url, xhr) {
         var rem = xhr.getResponseHeader("x-ratelimit-remaining");
+        var lim = xhr.getResponseHeader("x-ratelimit-limit");
         var rst = xhr.getResponseHeader("x-ratelimit-reset");
         if (rem !== null && rem !== "") rateRemaining = parseInt(rem);
+        if (lim !== null && lim !== "") rateLimit = parseInt(lim);
         if (rst !== null && rst !== "") rateReset = parseInt(rst);
 
         if (xhr.status === 0) {
